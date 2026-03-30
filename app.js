@@ -5,7 +5,6 @@ const cors = require("cors");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
-const server = require("./app"); // ملف Express app بتاعك
 
 const initSocket = require("./socket/socket");
 
