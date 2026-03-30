@@ -5,6 +5,7 @@ const cors = require("cors");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
+const server = require("./app"); // ملف Express app بتاعك
 
 const initSocket = require("./socket/socket");
 
@@ -53,17 +54,23 @@ app.use((err, req, res, next) => {
 });
 
 // ─── DB + Server ──────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+let isConnected = false; // لتجنب إعادة الاتصال في كل request
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
+const connectDB = async () => {
+  if (isConnected) return;
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB connected");
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
+    isConnected = true;
+  } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);
-    process.exit(1);
-  });
+    throw err;
+  }
+};
+
+// Export function compatible with Vercel
+module.exports = async (req, res) => {
+  await connectDB();
+  server(req, res);
+};
+
